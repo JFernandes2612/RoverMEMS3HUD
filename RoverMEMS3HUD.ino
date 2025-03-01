@@ -1,7 +1,6 @@
-#include "Arduino.h"
 #include <U8g2lib.h>
-#include <Wire.h>
-#include "MEMS3Commands.hpp"
+#include "src/MEMS3Commands.hpp"
+#include "src/SH1107HUD.hpp"
 
 #define RX_PIN 16
 #define TX_PIN 17
@@ -10,34 +9,17 @@
 
 bool init_command_sequence_ack = false;
 
-U8G2_SH1107_128X128_F_HW_I2C u8g2(U8G2_R0);
+SH1107HUD hud;
 
-const uint8_t CENTER_X = 64;
-const uint8_t CENTER_Y = 64;
-
-const uint8_t FONT_X = 29;
-const uint8_t FONT_Y = 100;
-
-const uint8_t MAX_SPEED = 200;
 uint8_t speed = 0;
-
-const uint8_t RPM_ARC_RADIUS = 53;
-const uint8_t RPM_ARC_START = 20;
-const uint8_t RPM_ARC_END = 108;
-const uint8_t RPM_ARC_THICKNESS = 3;
-
-const uint16_t MAX_RPM = 8000;
 uint16_t rpm = 0;
 
 void setup()
 {
-    u8g2.begin();
-    u8g2.setContrast(255);
-
-    // 1sh draw - Draw all 0 screen
-    draw();
+    hud.begin();
 
     Serial.begin(115200);
+    Serial.println("Starting Rover MEMS3 HUD");
 
     pinMode(EN_PIN, OUTPUT);
     digitalWrite(EN_PIN, HIGH);
@@ -134,32 +116,6 @@ void runInitializationCommandSequence()
     init_command_sequence_ack = true;
 }
 
-void draw_speed()
-{
-    u8g2.setFont(u8g2_font_fub30_tn);
-    u8g2.drawStr(FONT_X, FONT_Y, u8x8_u8toa(speed, 3));
-
-    u8g2.setFont(u8g2_font_resoledbold_tr);
-    u8g2.drawStr(85, 110, "km/h");
-}
-
-void draw_rpm()
-{
-    u8g2.drawArc(CENTER_X, CENTER_Y, RPM_ARC_RADIUS, map(rpm, 0, MAX_RPM, RPM_ARC_END - 1, RPM_ARC_START), RPM_ARC_END, RPM_ARC_THICKNESS);
-    u8g2.setFont(u8g2_font_fub11_tr);
-    u8g2.drawStr(CENTER_X - 18, CENTER_Y - 25, u8x8_u16toa(rpm, 4));
-    u8g2.setFont(u8g2_font_resoledbold_tr);
-    u8g2.drawStr(CENTER_X + 22, CENTER_Y - 18, "rpm");
-}
-
-void draw()
-{
-    u8g2.clearBuffer();
-    draw_speed();
-    draw_rpm();
-    u8g2.sendBuffer();
-}
-
 uint64_t prevTime = 0;
 
 void loop()
@@ -174,7 +130,7 @@ void loop()
     speed = getByteFromResponse(tryCommand(createCommand(MEMS3_ID_0D_COMMAND), MEMS3_ID_0D_COMMAND_ACK, 0), 0);
     rpm = getWordFromResponse(tryCommand(createCommand(MEMS3_ID_06_COMMAND), MEMS3_ID_06_COMMAND_ACK, 0), 8);
 
-    draw();
+    hud.draw(speed, rpm);
 
     Serial.printf("%ldms\n", millis() - prevTime);
 }
