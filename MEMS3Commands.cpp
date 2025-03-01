@@ -21,18 +21,10 @@ const std::vector<uint8_t> createCommandWithData(const std::vector<uint8_t> &com
 
 bool ackCommand(const std::vector<uint8_t> &received, const std::vector<uint8_t> &expected)
 {
-    uint8_t minSize = DATA_START_INDEX + 1 + expected.size(); // The +1 is because of the checksum
-    if (received.size() < minSize)
+    if (received.size() < DATA_START_INDEX + 1 + expected.size())
         return false;
     std::vector<uint8_t> responseCode = std::vector<uint8_t>(received.begin() + DATA_START_INDEX, received.begin() + DATA_START_INDEX + expected.size());
     return responseCode == expected;
-}
-
-const std::vector<uint8_t> getDataFromResponse(const std::vector<uint8_t> &response)
-{
-    if (response.size() <= ACTUAL_DATA_START_INDEX + 1) // The +1 is because of the checksum
-        return std::vector<uint8_t>();
-    return std::vector<uint8_t>(response.begin() + ACTUAL_DATA_START_INDEX, *(response.begin() + DATA_SIZE_INDEX) + response.begin() + DATA_START_INDEX);
 }
 
 int32_t bit(int32_t val, int32_t num_bit)
@@ -40,23 +32,23 @@ int32_t bit(int32_t val, int32_t num_bit)
     return (val >> num_bit) & 1;
 }
 
-const uint16_t getWordFromResponseData(const std::vector<uint8_t> &data, const uint8_t wordStart)
+const uint16_t getWordFromResponse(const std::vector<uint8_t> &data, const uint8_t wordStart)
 {
-  if (response.size() <= ACTUAL_DATA_START_INDEX + 3 + wordStart) // The +3 is because of the checksum
+    if (data.size() <= ACTUAL_DATA_START_INDEX + 2 + wordStart) // The +2 is because of the checksum + 1 byte of buffer to make up for the word
         return 0;
-  return (((uint16_t)data[wordStart+ACTUAL_DATA_START_INDEX]) << 8) + (uint16_t)data[wordStart+ACTUAL_DATA_START_INDEX+1];
+    return (((uint16_t)data[wordStart + ACTUAL_DATA_START_INDEX]) << 8) + (uint16_t)data[wordStart + ACTUAL_DATA_START_INDEX + 1];
 }
 
-const uint8_t getByteFromResponseData(const std::vector<uint8_t> &data, const uint8_t byteNumber)
+const uint8_t getByteFromResponse(const std::vector<uint8_t> &data, const uint8_t byteNumber)
 {
-  if (response.size() <= ACTUAL_DATA_START_INDEX + 2 + byteNumber) // The +2 is because of the checksum
+    if (data.size() <= ACTUAL_DATA_START_INDEX + 1 + byteNumber) // The +1 is because of the checksum
         return 0;
-  return data[byteNumber+ACTUAL_DATA_START_INDEX];
+    return data[byteNumber + ACTUAL_DATA_START_INDEX];
 }
 
-const std::vector<uint8_t> generateKey(const std::vector<uint8_t> &seed)
+const std::vector<uint8_t> generateKey(const int16_t seed)
 {
-    int32_t seedValue = (((int32_t)seed[0]) << 8) + (int32_t)seed[1];
+    int32_t seedValue = (int32_t)seed;
     int32_t keyValue = 0;
     int32_t loops = 1;
 

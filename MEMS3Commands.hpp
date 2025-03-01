@@ -33,11 +33,11 @@ const std::vector<uint8_t> createCommandWithData(const std::vector<uint8_t> &com
 
 bool ackCommand(const std::vector<uint8_t> &received, const std::vector<uint8_t> &expected);
 
-const std::vector<uint8_t> getDataFromResponse(const std::vector<uint8_t> &response);
+const std::vector<uint8_t> generateKey(const int16_t seed);
 
-const std::vector<uint8_t> generateKey(const std::vector<uint8_t> &seed);
+const uint8_t getByteFromResponse(const std::vector<uint8_t> &data, const uint8_t byteNumber);
 
-const uint16_t getWordFromResponseData(const std::vector<uint8_t> &data, const uint8_t wordStart);
+const uint16_t getWordFromResponse(const std::vector<uint8_t> &data, const uint8_t wordStart);
 
 template <typename T>
 std::vector<T> &operator+=(std::vector<T> &A, const std::vector<T> &B)
