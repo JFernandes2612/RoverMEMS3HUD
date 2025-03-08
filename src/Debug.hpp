@@ -1,4 +1,5 @@
 #pragma once
+
 #include <cstdint>
 
 #define SHOW_FRAMERATE 1

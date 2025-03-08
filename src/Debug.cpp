@@ -1,4 +1,5 @@
 #include "Debug.hpp"
+
 #include "Arduino.h"
 
 void printArr(const uint8_t *arr, uint8_t size)

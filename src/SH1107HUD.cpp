@@ -5,7 +5,6 @@ SH1107HUD::SH1107HUD()
     this->display = new U8G2_SH1107_128X128_F_HW_I2C(U8G2_MIRROR);
     this->display->begin();
     this->display->setContrast(255);
-    this->draw(0, 0);
 }
 
 void SH1107HUD::draw_speed(uint8_t speed)

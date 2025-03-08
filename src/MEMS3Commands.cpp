@@ -1,4 +1,5 @@
 #include "MEMS3Commands.hpp"
+
 #include <cstdlib>
 #include <cstring>
 

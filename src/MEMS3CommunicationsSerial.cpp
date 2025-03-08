@@ -1,5 +1,7 @@
 #include "MEMS3CommunicationsSerial.hpp"
+
 #include "Arduino.h"
+
 #include "Debug.hpp"
 #include "MEMS3Commands.hpp"
 

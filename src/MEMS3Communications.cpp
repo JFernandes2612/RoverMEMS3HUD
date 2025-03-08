@@ -1,5 +1,7 @@
 #include "MEMS3Communications.hpp"
+
 #include "Arduino.h"
+
 #include "Debug.hpp"
 #include "MEMS3Commands.hpp"
 
@@ -37,14 +39,9 @@ void MEMS3Communications::runInitializationCommandSequence()
 
     uint16_t seedValue = getWordFromResponse(this->tryCommand(createCommand(MEMS3_REQUEST_SEED_COMMAND), MEMS3_REQUEST_SEED_COMMAND_ACK), 0);
     if (seedValue == 0)
-    {
-        this->init_command_sequence_ack = true;
         return;
-    }
 
     this->tryCommand(createCommandWithData(MEMS3_SEND_KEY_COMMAND, generateKey(seedValue)), MEMS3_SEND_KEY_COMMAND_ACK);
-
-    this->init_command_sequence_ack = true;
 }
 
 uint8_t MEMS3Communications::getSpeed()
