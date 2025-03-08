@@ -33,14 +33,14 @@ int32_t bit(int32_t val, int32_t num_bit)
     return (val >> num_bit) & 1;
 }
 
-const uint16_t getWordFromResponse(const std::vector<uint8_t> &data, const uint8_t wordStart)
+uint16_t getWordFromResponse(const std::vector<uint8_t> &data, const uint8_t wordStart)
 {
     if (data.size() <= ACTUAL_DATA_START_INDEX + 2 + wordStart) // The +2 is because of the checksum + 1 byte of buffer to make up for the word
         return 0;
     return (((uint16_t)data[wordStart + ACTUAL_DATA_START_INDEX]) << 8) + (uint16_t)data[wordStart + ACTUAL_DATA_START_INDEX + 1];
 }
 
-const uint8_t getByteFromResponse(const std::vector<uint8_t> &data, const uint8_t byteNumber)
+uint8_t getByteFromResponse(const std::vector<uint8_t> &data, const uint8_t byteNumber)
 {
     if (data.size() <= ACTUAL_DATA_START_INDEX + 1 + byteNumber) // The +1 is because of the checksum
         return 0;

@@ -28,6 +28,6 @@ void loop()
     app->loop();
 
 #if SHOW_FRAMERATE
-    Serial.printf("%ldms\n", 1000 / (millis() - prevTime));
+    Serial.printf("%llufps\n", 1000 / (millis() - prevTime));
 #endif
 }
