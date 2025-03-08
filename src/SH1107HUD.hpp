@@ -1,6 +1,6 @@
 #pragma once
 #include <U8g2lib.h>
-#include "HUD.hpp"
+#include "HUDT.hpp"
 
 const uint8_t CENTER_X = 64;
 const uint8_t CENTER_Y = 64;
@@ -15,7 +15,7 @@ const uint8_t RPM_ARC_THICKNESS = 3;
 
 const uint16_t MAX_RPM = 8000;
 
-class SH1107HUD: public HUD<U8G2_SH1107_128X128_F_HW_I2C>
+class SH1107HUD: public HUDT<U8G2_SH1107_128X128_F_HW_I2C>
 {
 private:
     void draw_speed(uint8_t speed);

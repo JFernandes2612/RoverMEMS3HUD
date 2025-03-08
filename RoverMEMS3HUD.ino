@@ -1,24 +1,23 @@
-#include <U8g2lib.h>
 #include "src/Debug.hpp"
 #include "src/MEMS3Commands.hpp"
 #include "src/SH1107HUD.hpp"
-#include "src/MEMS3CommunicationsSerial.h"
+#include "src/MEMS3CommunicationsSerial.hpp"
 
-SH1107HUD *hud;
+HUD *hud;
 MEMS3Communications *commandSender;
 
 uint8_t speed = 0;
 uint16_t rpm = 0;
 
 void setup()
-{
-    hud = new SH1107HUD();
-    commandSender = new MEMS3CommunicationsSerial();
-
+{   
 #if DEBUG
     Serial.begin(115200);
     Serial.println("Starting Rover MEMS3 HUD");
 #endif
+
+    hud = new SH1107HUD();
+    commandSender = new MEMS3CommunicationsSerial();
 
     delay(1000); // let some time to make sure everything is initialized
 }
@@ -34,7 +33,7 @@ void loop()
         commandSender->runInitializationCommandSequence();
         delay(1000); // ensure initialization finished
     }
-    
+
 #if SHOW_FRAMERATE
     prevTime = millis();
 #endif
