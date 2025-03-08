@@ -10,6 +10,7 @@ std::vector<uint8_t> MEMS3Communications::tryCommand(const std::vector<uint8_t> 
     {
         this->sendCommand(command);
         response = this->readResponse(command.size());
+#if DEBUG
         if (response.empty())
             Serial.printf(" Retrying in %d milliseconds\n", retryDelayMs);
         else
@@ -19,6 +20,10 @@ std::vector<uint8_t> MEMS3Communications::tryCommand(const std::vector<uint8_t> 
             else
                 Serial.printf("\nAck Failed. Retrying in %d milliseconds\n", retryDelayMs);
         }
+#else
+        if (!response.empty() && ackCommand(response, commandAck))
+            break;
+#endif
         delay(retryDelayMs);
     }
     return response;

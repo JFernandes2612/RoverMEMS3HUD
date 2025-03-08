@@ -22,6 +22,5 @@ private:
     void draw_rpm(uint16_t rpm);
 public:
     SH1107HUD();
-    void begin();
     void draw(uint8_t speed, uint16_t rpm);
 };
