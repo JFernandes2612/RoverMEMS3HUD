@@ -5,7 +5,7 @@
 #include "Debug.hpp"
 #include "MEMS3Commands.hpp"
 
-std::vector<uint8_t> MEMS3Communications::tryCommand(const std::vector<uint8_t> &command, const std::vector<uint8_t> &commandAck, const uint16_t retryDelayMs = 1000)
+std::vector<uint8_t> MEMS3Communications::tryCommand(const std::vector<uint8_t> &command, const std::vector<uint8_t> &commandAck, const uint16_t retryDelayMs = 5000)
 {
     std::vector<uint8_t> response;
     while (1)
@@ -14,17 +14,29 @@ std::vector<uint8_t> MEMS3Communications::tryCommand(const std::vector<uint8_t> 
         response = this->readResponse(command.size());
 #if DEBUG
         if (response.empty())
-            Serial.printf(" Retrying in %d milliseconds\n", retryDelayMs);
+            Serial.printf(" Retrying in %dms\n", retryDelayMs);
         else
         {
-            if (ackCommand(response, commandAck))
+            enum AckResult ack = ackCommand(response, commandAck);
+            if (ack == AckResult::ACK)
                 break;
+            else if (ack == AckResult::NACK)
+            {
+                Serial.println("Nack");
+                return {};
+            }
             else
-                Serial.printf("\nAck Failed. Retrying in %d milliseconds\n", retryDelayMs);
+                Serial.printf("Ack Failed. Retrying in %dms\n", retryDelayMs);
         }
 #else
-        if (!response.empty() && ackCommand(response, commandAck))
-            break;
+        if (!response.empty())
+        {
+            enum AckResult ack = ackCommand(response, commandAck);
+            if (ack == AckResult::ACK)
+                break;
+            else if (ack == AckResult::NACK)
+                return {};
+        }
 #endif
         delay(retryDelayMs);
     }
@@ -33,15 +45,22 @@ std::vector<uint8_t> MEMS3Communications::tryCommand(const std::vector<uint8_t> 
 
 void MEMS3Communications::runInitializationCommandSequence()
 {
-    this->tryCommand(createCommand(MEMS3_INIT_COMMAND), MEMS3_INIT_COMMAND_ACK);
+    while (true)
+    {
+        if (this->tryCommand(createCommand(MEMS3_START_DIAGNOSTIC_COMMAND), MEMS3_START_DIAGNOSTIC_COMMAND_ACK).empty())
+            continue;
 
-    this->tryCommand(createCommand(MEMS3_START_DIAGNOSTIC_COMMAND), MEMS3_START_DIAGNOSTIC_COMMAND_ACK);
+        std::vector<uint8_t> seed = this->tryCommand(createCommand(MEMS3_REQUEST_SEED_COMMAND), MEMS3_REQUEST_SEED_COMMAND_ACK);
+        if (seed.empty())
+            continue;
 
-    uint16_t seedValue = getWordFromResponse(this->tryCommand(createCommand(MEMS3_REQUEST_SEED_COMMAND), MEMS3_REQUEST_SEED_COMMAND_ACK), 0);
-    if (seedValue == 0)
-        return;
+        uint16_t seedValue = getWordFromResponse(seed, 0);
+        if (seedValue == 0)
+            return;
 
-    this->tryCommand(createCommandWithData(MEMS3_SEND_KEY_COMMAND, generateKey(seedValue)), MEMS3_SEND_KEY_COMMAND_ACK);
+        if (!this->tryCommand(createCommandWithData(MEMS3_SEND_KEY_COMMAND, generateKey(seedValue)), MEMS3_SEND_KEY_COMMAND_ACK).empty())
+            break;
+    }
 }
 
 uint8_t MEMS3Communications::getSpeed()

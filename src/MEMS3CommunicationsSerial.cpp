@@ -30,17 +30,13 @@ void MEMS3CommunicationsSerial::sendCommand(const std::vector<uint8_t> &command)
 std::vector<uint8_t> MEMS3CommunicationsSerial::readResponse(const uint8_t commandSize)
 {
     uint8_t commandResponseBuff[COMMAND_RESPONSE_BUFF_SIZE];
-    size_t commandResponseReadSize = Serial2.readBytes(commandResponseBuff, commandSize + DATA_START_INDEX);
+    size_t commandResponseReadSize = Serial2.readBytes(commandResponseBuff, commandSize);
 
-    if (commandResponseReadSize == 0 || commandResponseReadSize < commandSize)
+    if (commandResponseReadSize == 0)
     {
 #if DEBUG
         Serial.print("Could not read echo.");
 #endif
-        while (Serial2.available() > 0)
-        {
-            Serial2.read();
-        }
         return std::vector<uint8_t>();
     }
 #if DEBUG
@@ -48,22 +44,27 @@ std::vector<uint8_t> MEMS3CommunicationsSerial::readResponse(const uint8_t comma
     printArr(commandResponseBuff, commandSize);
 #endif
 
-    if (commandResponseReadSize < commandSize + DATA_START_INDEX)
+    for (uint8_t i = 0; i < 2; i++)
     {
-#if DEBUG
-        Serial.print("Could not read data.");
-#endif
-        while (Serial2.available() > 0)
-        {
-            Serial2.read();
-        }
-        return std::vector<uint8_t>();
-    }
-    commandResponseReadSize = Serial2.readBytes(commandResponseBuff + commandResponseReadSize, commandResponseBuff[commandResponseReadSize - 1] + 1);
-#if DEBUG
-    Serial.print("Data: ");
-    printArr(commandResponseBuff + commandSize, DATA_START_INDEX + commandResponseReadSize);
-#endif
+        commandResponseReadSize = Serial2.readBytes(commandResponseBuff, COMMAND_RESPONSE_BUFF_SIZE);
 
-    return std::vector(commandResponseBuff + commandSize, commandResponseBuff + commandSize + DATA_START_INDEX + commandResponseReadSize);
+        if (commandResponseReadSize == 0)
+        {
+#if DEBUG
+            Serial.print("Could not read data.");
+#endif
+            if (i)
+                return std::vector<uint8_t>();
+            else
+                continue;
+        }
+
+#if DEBUG
+        Serial.print("Data: ");
+        printArr(commandResponseBuff, commandResponseReadSize);
+#endif
+        break;
+    }
+
+    return std::vector(commandResponseBuff, commandResponseBuff + commandResponseReadSize);
 }

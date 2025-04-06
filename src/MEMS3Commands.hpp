@@ -8,10 +8,14 @@
 #define DATA_SIZE_INDEX 3
 #define ACTUAL_DATA_START_INDEX 6
 
-const static std::vector<uint8_t> MEMS3_HEADER = {0xB8, 0x13, 0xF7};
+enum AckResult
+{
+    ACK,
+    INVALID,
+    NACK
+};
 
-const static std::vector<uint8_t> MEMS3_INIT_COMMAND = {0x1A, 0x9A};
-const static std::vector<uint8_t> MEMS3_INIT_COMMAND_ACK = {0x5A, 0x9A};
+const static std::vector<uint8_t> MEMS3_HEADER = {0xB8, 0x13, 0xF7};
 
 const static std::vector<uint8_t> MEMS3_START_DIAGNOSTIC_COMMAND = {0x10, 0xA0};
 const static std::vector<uint8_t> MEMS3_START_DIAGNOSTIC_COMMAND_ACK = {0x50};
@@ -25,16 +29,18 @@ const static std::vector<uint8_t> MEMS3_SEND_KEY_COMMAND_ACK = {0x67, 0x02};
 const static std::vector<uint8_t> MEMS3_ID_06_COMMAND = {0x21, 0x06};
 const static std::vector<uint8_t> MEMS3_ID_06_COMMAND_ACK = {0x61, 0x06};
 
-const static std::vector<uint8_t> MEMS3_ID_0D_COMMAND = {0x21, 0x0d};
-const static std::vector<uint8_t> MEMS3_ID_0D_COMMAND_ACK = {0x61, 0x0d};
+const static std::vector<uint8_t> MEMS3_ID_0D_COMMAND = {0x21, 0x0D};
+const static std::vector<uint8_t> MEMS3_ID_0D_COMMAND_ACK = {0x61, 0x0D};
+
+const static uint8_t NACK_COMMAND = 0x7F;
 
 const std::vector<uint8_t> createCommand(const std::vector<uint8_t> &command);
 
 const std::vector<uint8_t> createCommandWithData(const std::vector<uint8_t> &command, const std::vector<uint8_t> &data);
 
-bool ackCommand(const std::vector<uint8_t> &received, const std::vector<uint8_t> &expected);
+enum AckResult ackCommand(const std::vector<uint8_t> &received, const std::vector<uint8_t> &expected);
 
-const std::vector<uint8_t> generateKey(const int16_t seed);
+const std::vector<uint8_t> generateKey(uint16_t seedValue);
 
 uint8_t getByteFromResponse(const std::vector<uint8_t> &data, const uint8_t byteNumber);
 

@@ -20,15 +20,17 @@ const std::vector<uint8_t> createCommandWithData(const std::vector<uint8_t> &com
     return createCommand(commandWithData += data);
 }
 
-bool ackCommand(const std::vector<uint8_t> &received, const std::vector<uint8_t> &expected)
+enum AckResult ackCommand(const std::vector<uint8_t> &received, const std::vector<uint8_t> &expected)
 {
     if (received.size() < DATA_START_INDEX + 1 + expected.size())
-        return false;
+        return AckResult::INVALID;
+    if (received[DATA_START_INDEX] == NACK_COMMAND)
+        return AckResult::NACK;
     std::vector<uint8_t> responseCode = std::vector<uint8_t>(received.begin() + DATA_START_INDEX, received.begin() + DATA_START_INDEX + expected.size());
-    return responseCode == expected;
+    return responseCode == expected ? AckResult::ACK : AckResult::INVALID;
 }
 
-int32_t bit(int32_t val, int32_t num_bit)
+uint16_t bit(uint16_t val, uint16_t num_bit)
 {
     return (val >> num_bit) & 1;
 }
@@ -36,22 +38,21 @@ int32_t bit(int32_t val, int32_t num_bit)
 uint16_t getWordFromResponse(const std::vector<uint8_t> &data, const uint8_t wordStart)
 {
     if (data.size() <= ACTUAL_DATA_START_INDEX + 2 + wordStart) // The +2 is because of the checksum + 1 byte of buffer to make up for the word
-        return 0;
+        return 0xFFFF;
     return (((uint16_t)data[wordStart + ACTUAL_DATA_START_INDEX]) << 8) + (uint16_t)data[wordStart + ACTUAL_DATA_START_INDEX + 1];
 }
 
 uint8_t getByteFromResponse(const std::vector<uint8_t> &data, const uint8_t byteNumber)
 {
     if (data.size() <= ACTUAL_DATA_START_INDEX + 1 + byteNumber) // The +1 is because of the checksum
-        return 0;
+        return 0xFF;
     return data[byteNumber + ACTUAL_DATA_START_INDEX];
 }
 
-const std::vector<uint8_t> generateKey(const int16_t seed)
+const std::vector<uint8_t> generateKey(uint16_t seedValue)
 {
-    int32_t seedValue = (int32_t)seed;
-    int32_t keyValue = 0;
-    int32_t loops = 1;
+    uint16_t keyValue = 0;
+    uint16_t loops = 1;
 
     if (bit(seedValue, 15))
         loops += 8;
@@ -60,27 +61,19 @@ const std::vector<uint8_t> generateKey(const int16_t seed)
     if (bit(seedValue, 4))
         loops += 2;
     if (bit(seedValue, 0))
-        loops += 1;
+        loops++;
 
-    while (loops > 0)
+    for (uint16_t _ = 0; _ < loops; _++)
     {
-        keyValue = seedValue >> 1;
+        keyValue = (((seedValue >> 1) & 0xFFFE) | (bit(seedValue, 13) && bit(seedValue, 3) ? 0 : 1)) & 0x7FFF;
 
-        if (bit(seedValue, 13) && bit(seedValue, 3))
-            keyValue &= 0b11111111111111110;
-        else
-            keyValue |= 0b0000000000000001;
-
-        int32_t v = bit(seedValue, 9) ^ bit(seedValue, 8) ^ bit(seedValue, 2) ^ bit(seedValue, 1);
-        if (v)
-            keyValue |= 0b1000000000000000;
+        if (bit(seedValue, 9) ^ bit(seedValue, 8) ^ bit(seedValue, 2) ^ bit(seedValue, 1))
+            keyValue |= 0x8000;
 
         seedValue = keyValue;
-        loops--;
     }
 
     std::vector<uint8_t> key;
-    keyValue &= 0xFFFF;
     key.push_back((uint8_t)(keyValue >> 8));
     key.push_back((uint8_t)(keyValue & 0xFF));
     return key;

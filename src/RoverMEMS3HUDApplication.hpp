@@ -12,6 +12,8 @@ private:
     uint8_t speed = 0;
     uint16_t rpm = 0;
 
+    bool inInitializationSequence = true;
+
 public:
     RoverMEMS3HUDApplication();
     void loop();

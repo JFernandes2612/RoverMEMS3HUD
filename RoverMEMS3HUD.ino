@@ -4,15 +4,12 @@
 RoverMEMS3HUDApplication *app;
 
 void setup()
-{   
-#if DEBUG
+{
+#if DEBUG || SHOW_FRAMERATE
     Serial.begin(115200);
     Serial.println("Starting Rover MEMS3 HUD");
 #endif
-
     app = new RoverMEMS3HUDApplication();
-
-    delay(1000); // let some time to make sure everything is initialized
 }
 
 #if SHOW_FRAMERATE
@@ -24,10 +21,8 @@ void loop()
 #if SHOW_FRAMERATE
     prevTime = millis();
 #endif
-
     app->loop();
-
 #if SHOW_FRAMERATE
-    Serial.printf("%llufps\n", 1000 / (millis() - prevTime));
+    Serial.printf("%ffps\n", 1000.0 / ((double)millis() - (double)prevTime));
 #endif
 }
