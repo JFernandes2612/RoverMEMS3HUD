@@ -5,10 +5,10 @@
 #include "Debug.hpp"
 #include "MEMS3Commands.hpp"
 
-std::vector<uint8_t> MEMS3Communications::tryCommand(const std::vector<uint8_t> &command, const std::vector<uint8_t> &commandAck, const uint16_t retryDelayMs = 5000)
+std::vector<uint8_t> MEMS3Communications::tryCommand(const std::vector<uint8_t> &command, const std::vector<uint8_t> &commandAck, uint32_t max_reties = -1, const uint16_t retryDelayMs = 5000)
 {
     std::vector<uint8_t> response;
-    while (1)
+    while (max_reties--)
     {
         this->sendCommand(command);
         response = this->readResponse(command.size());
@@ -65,10 +65,10 @@ void MEMS3Communications::runInitializationCommandSequence()
 
 uint8_t MEMS3Communications::getSpeed()
 {
-    return getByteFromResponse(this->tryCommand(createCommand(MEMS3_ID_0D_COMMAND), MEMS3_ID_0D_COMMAND_ACK, 0), 0);
+    return getByteFromResponse(this->tryCommand(createCommand(MEMS3_ID_0D_COMMAND), MEMS3_ID_0D_COMMAND_ACK, 3, 0), 0);
 }
 
 uint16_t MEMS3Communications::getRpm()
 {
-    return getWordFromResponse(this->tryCommand(createCommand(MEMS3_ID_06_COMMAND), MEMS3_ID_06_COMMAND_ACK, 0), 8);
+    return getWordFromResponse(this->tryCommand(createCommand(MEMS3_ID_06_COMMAND), MEMS3_ID_06_COMMAND_ACK, 3, 0), 8);
 }

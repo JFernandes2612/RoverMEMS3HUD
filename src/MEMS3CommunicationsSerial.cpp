@@ -37,7 +37,7 @@ std::vector<uint8_t> MEMS3CommunicationsSerial::readResponse(const uint8_t comma
 #if DEBUG
         Serial.print("Could not read echo.");
 #endif
-        return std::vector<uint8_t>();
+        return {};
     }
 #if DEBUG
     Serial.print("Echo: ");
@@ -54,7 +54,7 @@ std::vector<uint8_t> MEMS3CommunicationsSerial::readResponse(const uint8_t comma
             Serial.print("Could not read data.");
 #endif
             if (i)
-                return std::vector<uint8_t>();
+                return {};
             else
                 continue;
         }
